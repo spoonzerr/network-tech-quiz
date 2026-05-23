@@ -385,18 +385,37 @@
     .option-label.wrong    { border-color: #e53e3e; background: #fff5f5; color: #c53030; }
     .option-label.disabled { cursor: default; pointer-events: none; }
 
-    .explanation {
+    .explanation { display: none; }
+
+    /* per-option notes shown after submission */
+    .option-note {
       display: none;
-      margin-top: 1rem;
-      padding: 0.75rem 1rem;
-      background: #ebf8ff;
-      border-left: 4px solid #3182ce;
-      border-radius: 6px;
-      font-size: 0.92rem;
-      color: #2c5282;
-      line-height: 1.5;
+      font-size: 0.8rem;
+      line-height: 1.45;
+      margin: 0.25rem 0 0.5rem 0;
+      padding: 0.35rem 0.75rem;
+      border-radius: 0 0 7px 7px;
+      border-left: 3px solid transparent;
     }
-    .explanation.show { display: block; }
+    .option-note.show { display: block; }
+    .option-note.note-correct {
+      background: #f0fff4;
+      border-left-color: #38a169;
+      color: #276749;
+    }
+    .option-note.note-wrong {
+      background: #fff5f5;
+      border-left-color: #e53e3e;
+      color: #c53030;
+    }
+    .option-note.note-unchosen {
+      background: #f7fafc;
+      border-left-color: #cbd5e0;
+      color: #718096;
+    }
+    body.dark .option-note.note-correct  { background: #052e16;  border-left-color: #38a169; color: #86efac; }
+    body.dark .option-note.note-wrong    { background: #2d0a0a;  border-left-color: #e53e3e; color: #fca5a5; }
+    body.dark .option-note.note-unchosen { background: #1e293b;  border-left-color: #475569; color: #64748b; }
 
     /* ── NAV (inline — hidden; replaced by fixed nav) ─────────────────────── */
     .nav { display: none; }
@@ -4217,6 +4236,7 @@ function buildCards() {
           <input type="radio" name="q${i}" value="${oi}" onchange="selectAnswer(${i},${oi})" />
           ${opt}
         </label>
+        <div class="option-note" id="note-${i}-${oi}"></div>
       </li>
     `).join("");
 
@@ -4305,12 +4325,23 @@ function submitQuiz() {
   activeQuestions.forEach((q, i) => {
     const chosen = userAnswers[i];
     for (let oi = 0; oi < q.options.length; oi++) {
-      const lbl = document.getElementById(`lbl-${i}-${oi}`);
+      const lbl  = document.getElementById(`lbl-${i}-${oi}`);
+      const note = document.getElementById(`note-${i}-${oi}`);
       lbl.classList.add("disabled");
-      if (oi === q.answer)                           lbl.classList.add("correct");
-      else if (oi === chosen && chosen !== q.answer) lbl.classList.add("wrong");
+
+      if (oi === q.answer) {
+        lbl.classList.add("correct");
+        note.className = "option-note note-correct show";
+        note.textContent = "✓ Correct — " + q.explanation;
+      } else if (oi === chosen) {
+        lbl.classList.add("wrong");
+        note.className = "option-note note-wrong show";
+        note.textContent = "✗ Incorrect — this option is wrong.";
+      } else {
+        note.className = "option-note note-unchosen show";
+        note.textContent = "✗ Incorrect.";
+      }
     }
-    document.getElementById(`exp-${i}`).classList.add("show");
     if (chosen === q.answer) correct++;
   });
 
