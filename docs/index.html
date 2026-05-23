@@ -116,12 +116,20 @@
       color: #3182ce;
     }
 
-    /* mobile-preview mode: constrain container like a phone screen */
+    /* mobile: narrow to phone width */
     body.mobile-preview .container {
       max-width: 390px;
-      transition: max-width 0.35s cubic-bezier(0.4,0,0.2,1);
+      min-width: unset;
     }
-    .container { transition: max-width 0.35s cubic-bezier(0.4,0,0.2,1); }
+    /* desktop: force full 760px — creates horizontal scroll on narrow viewports */
+    body.desktop-preview .container {
+      min-width: 760px;
+      max-width: 760px;
+    }
+    body.desktop-preview {
+      overflow-x: auto;
+    }
+    .container { transition: max-width 0.35s cubic-bezier(0.4,0,0.2,1), min-width 0.35s cubic-bezier(0.4,0,0.2,1); }
 
     /* ── DARK MODE OVERRIDES ───────────────────────────────────────────────── */
     body.dark {
@@ -4473,13 +4481,15 @@ function toggleDark() {
 function setScale(mode) {
   const isMobile = mode === "mobile";
   document.body.classList.toggle("mobile-preview", isMobile);
+  document.body.classList.toggle("desktop-preview", !isMobile);
   document.getElementById("scale-desktop").classList.toggle("active", !isMobile);
   document.getElementById("scale-mobile").classList.toggle("active", isMobile);
   localStorage.setItem("quizScaleMode", mode);
 }
 
 (function initScale() {
-  if (localStorage.getItem("quizScaleMode") === "mobile") setScale("mobile");
+  const saved = localStorage.getItem("quizScaleMode");
+  setScale(saved === "mobile" ? "mobile" : "desktop");
 })();
 
 // ═══════════════════════════════════════════════════════════════════════════
